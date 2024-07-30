@@ -1,0 +1,21 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  rabbitmq1:
+    restart: always
+    image: rabbitmq:3.8.5-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      TZ: Asia/Shanghai
+      RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
+      RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+
+networks:
+  my-network:
+    driver: bridge

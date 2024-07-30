@@ -1,0 +1,54 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  rabbitmq1:
+    restart: always
+    image: rabbitmq:3.8.5-management
+    container_name: rabbitmq01
+    hostname: rabbitmq01
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      TZ: Asia/Shanghai
+      RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
+      RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
+    volumes:
+      - ./rabbitmq-cluster/mq1/data:/var/lib/rabbitmq
+      - ./rabbitmq-cluster/mq1/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+
+  rabbitmq2:
+    restart: always
+    image: rabbitmq:3.8.5-management
+    container_name: rabbitmq02
+    hostname: rabbitmq02
+    ports:
+      - "5674:5672"
+      - "15674:15672"
+    environment:
+      TZ: Asia/Shanghai
+      RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
+      RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
+    volumes:
+      - ./rabbitmq-cluster/mq2/data:/var/lib/rabbitmq
+      - ./rabbitmq-cluster/mq2/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+
+  rabbitmq3:
+    restart: always
+    image: rabbitmq:3.8.5-management
+    container_name: rabbitmq03
+    hostname: rabbitmq03
+    ports:
+      - "5675:5672"
+      - "15675:15672"
+    environment:
+      TZ: Asia/Shanghai
+      RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
+      RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
+    volumes:
+      - ./rabbitmq-cluster/mq3/data:/var/lib/rabbitmq
+      - //rabbitmq-cluster/mq3/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+
+networks:
+  my-network:
+    driver: bridge

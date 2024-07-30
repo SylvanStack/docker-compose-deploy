@@ -1,0 +1,29 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  xxl-job-admin:
+    image: xuxueli/xxl-job-admin:2.4.0
+    container_name: xxl-job-admin
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9090:9090"
+    links:
+      - mysql
+    volumes:
+      - ./data/job/logs:/data/applogs
+      - ./data/job/xxl-job/:/xxl-job
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/xxl_job?serverTimezone=UTC&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SERVER_PORT=9090
+      - XXL_JOB_ACCESSTOKEN=aHQteHhsLWpvYg  #代码里面需要指定的token
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
