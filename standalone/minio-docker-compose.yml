@@ -4,7 +4,7 @@ services:
   minio1:
     image: minio/minio:RELEASE.2024-05-10T01-41-38Z
     volumes:
-      - ./minio/m1_data:/data
+      - ${ROOT_PATH}/minio/m1_data:/data
     networks:
       - my-network
     ports:
@@ -18,7 +18,7 @@ services:
   minio2:
     image: minio/minio:RELEASE.2024-05-10T01-41-38Z
     volumes:
-      - ./minio/m2_data:/data
+      - ${ROOT_PATH}/minio/m2_data:/data
     networks:
       - my-network
     environment:
@@ -29,7 +29,7 @@ services:
   minio3:
     image: minio/minio:RELEASE.2024-05-10T01-41-38Z
     volumes:
-      - ./minio/m3_data:/data
+      - ${ROOT_PATH}/minio/m3_data:/data
     networks:
       - my-network
     environment:

@@ -14,7 +14,7 @@ services:
       RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
       RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
     volumes:
-      - ./data/rabbitmq:/var/lib/rabbitmq
+      - ${ROOT_PATH}/rabbitmq:/var/lib/rabbitmq
 
 networks:
   my-network:

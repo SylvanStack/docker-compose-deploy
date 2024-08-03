@@ -13,8 +13,8 @@ services:
     links:
       - mysql
     volumes:
-      - ./data/job/logs:/data/applogs
-      - ./data/job/xxl-job/:/xxl-job
+      - ${ROOT_PATH}/xxl-job/logs:/data/applogs
+      - ${ROOT_PATH}/xxl-job/xxl-job/:/xxl-job
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/xxl_job?serverTimezone=UTC&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=root

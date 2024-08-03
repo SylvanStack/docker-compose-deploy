@@ -1,0 +1,16 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  mysql:
+    restart: always
+    image: mysql:5.7
+    container_name: mysql_57
+    ports:
+      - "13306:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: 123456
+    volumes:
+      - ${ROOT_PATH}/mysql57/log:/var/log/mysql
+      - ${ROOT_PATH}/mysql57/data:/var/lib/mysql
+      - ${ROOT_PATH}/mysql57/conf:/etc/mysql/conf.d

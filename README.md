@@ -21,3 +21,6 @@
 - 分布式存储 minio
 - 数据库mysql
 - 缓存redis
+
+#### 分布式任务调度
+https://airflow.apache.org/docs/apache-airflow/2.6.0/docker-compose.yaml

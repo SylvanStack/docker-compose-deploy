@@ -1,0 +1,17 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  portainer:
+    image: portainer/portainer:latest
+    container_name: portainer
+    ports:
+      - "19000:9000"
+    restart: always
+    volumes:
+      -  ${ROOT_PATH}/portainer/data:/data
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
