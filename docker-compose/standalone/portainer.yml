@@ -8,7 +8,7 @@ services:
       - "19000:9000"
     restart: always
     volumes:
-      -  ${ROOT_PATH}/portainer/data:/data
+      - ${ROOT_PATH}/portainer/data:/data
     networks:
       - my-network
 

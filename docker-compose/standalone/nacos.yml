@@ -1,0 +1,32 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  nacos:
+    image: nacos/nacos-server:v2.2.3-slim
+    container_name: nacos
+    restart: always
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - MODE=standalone
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos_config
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=123456
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      - NACOS_AUTH_IDENTITY_KEY=2222
+      - NACOS_AUTH_IDENTITY_VALUE=2xxx
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+    networks:
+      - my-network
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+
+networks:
+  my-network:
+    driver: bridge
