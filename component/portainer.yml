@@ -5,7 +5,7 @@ services:
     image: portainer/portainer:latest
     container_name: portainer
     ports:
-      - "19000:9000"
+      - "9100:9000"
     restart: always
     volumes:
       - ${ROOT_PATH}/portainer/data:/data
