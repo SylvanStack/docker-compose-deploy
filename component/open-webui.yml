@@ -5,7 +5,7 @@ services:
     container_name: open-webui
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "9020:8080"
     environment:
       - OLLAMA_API_BASE=http://ollama:11434
       - USERID=1000
