@@ -2,7 +2,7 @@
 version: '3.9'
 services:
   portainer:
-    image: portainer/portainer:latest
+    image: portainer/portainer-ce:2.19.4
     container_name: portainer
     environment:
       - TZ=Asia/Shanghai # 时区配置（按需修改）
