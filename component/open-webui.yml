@@ -7,7 +7,7 @@ services:
     ports:
       - "9020:8080"
     environment:
-      - OLLAMA_API_BASE=http://ollama:11434
+      - OLLAMA_BASE_URL=http://ollama:11434
       - USERID=1000
     volumes:
       - ${ROOT_PATH}/open-webui/data/webui:/app/backend/data
