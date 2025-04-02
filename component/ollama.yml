@@ -9,6 +9,8 @@ services:
       - "11434:11434"
     networks:
       - my-network
+    volumes:
+      - ${ROOT_PATH}/ollama/data:/root/.ollama
 
 networks:
   my-network:
