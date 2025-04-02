@@ -4,11 +4,14 @@ services:
   portainer:
     image: portainer/portainer:latest
     container_name: portainer
+    environment:
+      - TZ=Asia/Shanghai # 时区配置（按需修改）
     ports:
       - "9100:9000"
     restart: always
     volumes:
       - ${ROOT_PATH}/portainer/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - my-network
 
