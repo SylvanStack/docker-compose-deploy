@@ -1,0 +1,18 @@
+version: '3'
+services:
+  one-api:
+    image: justsong/one-api
+    container_name: one-api
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ${ROOT_PATH}/data/one-api:/data
+    networks:
+      - oneapi-net
+    ports:
+      - "3000:3000"
+
+networks:
+  oneapi-net:
+    driver: bridge
