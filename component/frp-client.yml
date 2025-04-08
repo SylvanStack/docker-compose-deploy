@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  frpc:
+    image: snowdreamtech/frpc:latest
+    container_name: frpc
+    restart: always
+    network_mode: host
+    volumes:
+      - ${ROOT_PATH}/frp/client/frpc.ini:/etc/frp/frpc.ini 
