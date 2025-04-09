@@ -1,0 +1,19 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  drawio:
+    image: jgraph/drawio:26.2.8
+    container_name: drawio
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai # 时区配置（按需修改）
+    ports:
+      - "9101:8080"
+    volumes:
+      - ${ROOT_PATH}/drawio/data:/var/lib/drawio
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
