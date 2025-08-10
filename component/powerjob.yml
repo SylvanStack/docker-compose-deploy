@@ -1,0 +1,17 @@
+version: '3'
+services:
+  powerjob-server:
+    container_name: powerjob-server
+    image: powerjob/powerjob-server:latest
+    restart: always
+    depends_on:
+      - powerjob-mysql
+    environment:
+      JVMOPTIONS: "-Xmx512m"
+      PARAMS: "--oms.mongodb.enable=false --spring.datasource.core.jdbc-url=jdbc:mysql://powerjob:3306/powerjob?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai"
+    ports:
+      - "17700:7700"
+      - "10086:10086"
+      - "10010:10010"
+    volumes:
+      - ${ROOT_PATH}/powerjob/server:/root/powerjob/server/
