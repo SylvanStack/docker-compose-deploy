@@ -43,7 +43,6 @@ services:
       - my-network
     volumes:
       - ${ROOT_PATH}/nacos/logs:/home/nacos/logs  # 挂载日志目录
-      - ${ROOT_PATH}/nacos/conf:/home/nacos/conf  # 挂载配置文件目录
       - ${ROOT_PATH}/nacos/data:/home/nacos/data  # 挂载数据目录
 #    depends_on:
 #      mysql:
