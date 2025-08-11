@@ -1,0 +1,128 @@
+# Kafka集群部署配置
+# 包含Zookeeper和Kafka服务
+# 使用Confluent平台镜像，提供完整的Kafka生态系统
+# 参考RocketMQ配置结构设计
+
+version: '3.9'
+
+services:
+  # Zookeeper服务 - Kafka依赖的协调服务
+  # 针对 kafka-clients:3.0.2 版本优化
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.0
+    container_name: kafka-zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      TZ: "Asia/Shanghai"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - my-network
+
+  # Kafka Broker服务
+  # 使用与 kafka-clients:3.0.2 兼容的版本
+  kafka:
+    image: confluentinc/cp-kafka:7.0.0
+    container_name: kafka-broker
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "9997:9997"
+    environment:
+      # Kafka基础配置
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      
+      # 监听器配置 - 支持内外网访问
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      
+      # 性能和存储配置
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      
+      # 日志配置
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
+      
+      # JMX监控配置
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_HOSTNAME: localhost
+      
+      # 时区配置
+      TZ: "Asia/Shanghai"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+      - kafka_logs:/var/log/kafka
+    networks:
+      - my-network
+
+  # Kafka UI管理界面
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      TZ: "Asia/Shanghai"
+    networks:
+      - my-network
+
+  # # Kafka Manager (CMAK) - 可选的集群管理工具
+  # kafka-manager:
+  #   image: hlebalbau/kafka-manager:stable
+  #   container_name: kafka-manager
+  #   depends_on:
+  #     - zookeeper
+  #   ports:
+  #     - "9000:9000"
+  #   environment:
+  #     ZK_HOSTS: zookeeper:2181
+  #     APPLICATION_SECRET: letmein
+  #     TZ: "Asia/Shanghai"
+  #   networks:
+  #     - my-network
+
+networks:
+  my-network:
+    driver: bridge
+
+volumes:
+  zookeeper_data:
+  zookeeper_logs:
+  kafka_data:
+  kafka_logs:
+
+# 使用说明：
+# 1. 直接使用命名卷存储数据，无需设置环境变量和手动创建目录
+# 2. 容器内权限问题已通过命名卷自动处理
+# 3. 执行命令：docker-compose -f kafka.yml up -d
+# 3. 访问 Kafka UI：http://localhost:8080
+# 4. 访问 Kafka Manager：http://localhost:9000
+# 5. Kafka连接地址：localhost:9092
+#
+# 版本兼容性说明：
+# - Kafka服务端版本：3.0.x (cp-kafka:7.0.0)
+# - 兼容 kafka-clients:3.0.2
+# - 保留 Zookeeper 以确保与该版本 Java 客户端的最佳兼容性
+# - 生产环境推荐配置，稳定可靠
