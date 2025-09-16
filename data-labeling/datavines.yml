@@ -1,0 +1,25 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  datavines:
+    image: wydcn/datavines:1.0-rc
+    container_name: datavines
+    privileged: true
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=mysql
+      - SPRING_DATASOURCE_URL=jdbc:mysql://127.0.0.1:3306/datavines?useSSL=false&useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+    networks:
+      - my-network
+    ports:
+      - "5600:5600"
+    volumes:
+      - ${ROOT_PATH}/datavines/logs:/app/logs  # DataVines应用日志目录
+      - ${ROOT_PATH}/datavines/data:/app/data  # DataVines应用数据目录
+
+networks:
+  my-network:
+    driver: bridge
