@@ -1,0 +1,67 @@
+# 命令执行 docker-compose up -d
+version: '3.9'
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    restart: always
+    hostname: gitlab.test.com  # 设置GitLab实例的主机名
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.test.com'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+        gitlab_rails['time_zone'] = 'Asia/Shanghai'
+        gitlab_rails['smtp_enable'] = false
+        
+        # 使用外部PostgreSQL配置
+        postgresql['enable'] = false
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_encoding'] = 'utf8'
+        gitlab_rails['db_host'] = 'db'
+        gitlab_rails['db_port'] = 5432
+        gitlab_rails['db_username'] = 'postgres'
+        gitlab_rails['db_password'] = 'postgres'
+        gitlab_rails['db_database'] = 'gitlabhq_production'
+        
+        # 使用外部Redis配置
+        redis['enable'] = false
+        gitlab_rails['redis_host'] = 'redis_host'
+        gitlab_rails['redis_port'] = 6379
+        gitlab_rails['redis_database'] = 0
+        # gitlab_rails['redis_password'] = 'redis_password' # 如果Redis设置了密码
+    ports:
+      - "80:80"      # Web访问端口
+      - "443:443"    # HTTPS端口
+      - "2224:22"    # SSH端口
+    volumes:
+      - ${ROOT_PATH}/gitlab/config:/etc/gitlab    # 配置文件
+      - ${ROOT_PATH}/gitlab/logs:/var/log/gitlab  # 日志文件
+      - ${ROOT_PATH}/gitlab/data:/var/opt/gitlab  # 数据文件
+    shm_size: '256m'  # 共享内存大小，防止CI构建时内存不足
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "/opt/gitlab/bin/gitlab-healthcheck", "--fail", "--max-time", "10"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 180s  # GitLab启动较慢，给予足够的初始化时间
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: gitlab-runner
+    restart: always
+    depends_on:
+      gitlab:
+        condition: service_healthy  # 确保GitLab完全启动后再启动runner
+    volumes:
+      - ${ROOT_PATH}/gitlab-runner/config:/etc/gitlab-runner  # Runner配置
+      - /var/run/docker.sock:/var/run/docker.sock  # 允许Runner使用Docker执行CI任务
+    networks:
+      - my-network
+    environment:
+      - TZ=Asia/Shanghai
+
+networks:
+  my-network:
+    driver: bridge

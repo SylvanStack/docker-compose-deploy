@@ -47,6 +47,9 @@
 ### 监控管理
 - Portainer (容器管理)
 
+### CI/CD工具
+- GitLab CE (代码仓库与CI/CD平台)
+
 ## 快速开始
 
 ### 1. 克隆项目
@@ -89,6 +92,13 @@ cd docker-compose/cluster
 
 ### 容器管理
 - Portainer: http://localhost:9000
+
+### CI/CD平台
+- GitLab: http://gitlab.test.com
+  - 初始用户名：root
+  - 初始密码：系统自动生成，首次访问时在/etc/gitlab/initial_root_password文件中查看
+  - 数据库：PostgreSQL 13 (外部服务)
+  - 缓存：Redis 6.2 (外部服务)
 
 ## 目录结构
 
@@ -156,3 +166,24 @@ cd docker-compose/cluster
 - 修改MinIO Web控制台端口为9111
 - 配置MinIO界面显示中文
 - 优化MinIO性能参数，添加缓存、压缩和区域设置
+
+#### 2025-09-24
+- 添加Label Studio数据标注平台的docker-compose配置
+- 配置PostgreSQL 13数据库作为Label Studio的后端存储
+- 设置数据卷挂载，确保标注数据持久化
+- 配置网络连接，使用统一网络管理方案
+- 添加环境变量配置，支持自定义数据库连接
+- 解决容器权限问题，使用root用户运行容器
+- 优化数据目录结构，简化卷挂载配置
+- 添加LABEL_STUDIO环境变量，指定数据和媒体文件路径
+- 使用官方镜像部署，简化配置流程
+- 解决PostgreSQL版本兼容性问题，升级到13版本
+- 添加健康检查机制，确保数据库完全启动后再启动应用
+- 优化容器依赖关系，解决数据库连接问题
+- 添加GitLab CE的docker-compose配置
+- 集成GitLab Runner用于CI/CD流水线
+- 配置GitLab数据持久化和健康检查机制
+- 优化GitLab启动参数和资源配置
+- 配置GitLab使用外部PostgreSQL数据库服务
+- 配置GitLab使用外部Redis缓存服务
+- 优化服务启动顺序，确保数据库和缓存先启动

@@ -14,8 +14,8 @@ services:
       RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
       RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
     volumes:
-      - ./rabbitmq-cluster/mq1/data:/var/lib/rabbitmq
-      - ./rabbitmq-cluster/mq1/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - ${ROOT_PATH}/rabbitmq-cluster/mq1/data:/var/lib/rabbitmq
+      - ${ROOT_PATH}/rabbitmq-cluster/mq1/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
 
   rabbitmq2:
     restart: always
@@ -30,8 +30,8 @@ services:
       RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
       RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
     volumes:
-      - ./rabbitmq-cluster/mq2/data:/var/lib/rabbitmq
-      - ./rabbitmq-cluster/mq2/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - ${ROOT_PATH}/rabbitmq-cluster/mq2/data:/var/lib/rabbitmq
+      - ${ROOT_PATH}/rabbitmq-cluster/mq2/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
 
   rabbitmq3:
     restart: always
@@ -46,8 +46,8 @@ services:
       RABBITMQ_DEFAULT_USER: rabbit   #自定义登录账号
       RABBITMQ_DEFAULT_PASS: 123456 #自定义登录密码
     volumes:
-      - ./rabbitmq-cluster/mq3/data:/var/lib/rabbitmq
-      - //rabbitmq-cluster/mq3/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - ${ROOT_PATH}/rabbitmq-cluster/mq3/data:/var/lib/rabbitmq
+      - ${ROOT_PATH}/rabbitmq-cluster/mq3/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
 
 networks:
   my-network:

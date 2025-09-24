@@ -7,5 +7,5 @@ services:
     restart: always
     network_mode: host
     volumes:
-      - ${ROOT_PATH}/frp/client/frpc.ini:/etc/frp/frpc.ini
+      - ${ROOT_PATH}/frp-client/frpc.ini:/etc/frp/frpc.ini
     command: -c /etc/frp/frpc.ini
