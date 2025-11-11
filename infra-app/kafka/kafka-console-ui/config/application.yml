@@ -1,0 +1,66 @@
+server:
+  port: 7766
+  servlet:
+    # 不要修改context-path
+    context-path: /
+
+kafka:
+  config:
+    # 如果不存在default集群，启动的时候默认会把这个加载进来(如果这里配置集群地址了)，如果已经存在，则不加载
+    # kafka broker地址，多个以逗号分隔，不是必须在这里配置，也可以启动之后，在页面上添加集群信息
+    bootstrap-server:
+    # 集群其它属性配置
+    properties:
+#      request.timeout.ms: 5000
+    # 缓存连接，不缓存的情况下，每次请求建立连接. 即使每次请求建立连接，其实也很快，某些情况下开启ACL，查询可能很慢，可以设置连接缓存为true，
+    # 或者想提高查询速度，也可以设置下面连接缓存为true
+    # 缓存 admin client的连接
+    cache-admin-connection: true
+    # 缓存 producer的连接
+    cache-producer-connection: false
+    # 缓存 consumer的连接
+    cache-consumer-connection: false
+
+spring:
+  application:
+    name: kafka-console-ui
+  # h2 database
+  datasource:
+    url: jdbc:h2:file:${data.dir:${user.dir}}/data/db/kafka-console
+#    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: kafka
+    password: 1234567890
+    schema: classpath:db/schema-h2.sql
+#    data: classpath:db/data-h2.sqldata.dir
+    initialization-mode: always
+  h2:
+    console:
+      enabled: true
+#      settings:
+#        web-allow-others: true
+
+logging:
+  home: ./
+
+kafka.console.login.enabled: true
+
+# 基于scram方案的acl，这里会记录创建的用户密码等信息，定时扫描，如果集群中已经不存在这些用户，就把这些信息从db中清除掉
+cron:
+#  clear-dirty-user: 0 * * * * ?
+  clear-dirty-user: 0 0 1 * * ?
+
+# 权限认证设置，设置为true，需要先登录才能访问
+auth:
+  enable: true
+  # 登录用户token的过期时间，单位：小时
+  expire-hours: 24
+  # 隐藏集群的属性信息，如果当前用户没有集群切换里的编辑权限，就不能看集群的属性信息，有开启ACL的集群需要开启这个
+  hide-cluster-property: true
+  # 是否启用集群的数据权限，如果启用，可以配置哪些角色看到哪些集群. 不启用，即使配置了也不生效，每个角色的用户都可以看到所有集群信息.
+  enable-cluster-authority: false
+  # 重新加载权限信息，版本升级替换jar包的时候，新版本里增加了新的权限菜单，这个设置为true.然后在角色列表里分配新增加的菜单权限.
+  reload-permission: true
+log:
+  # 是否打印操作日志（增加、删除、编辑）
+  print-controller-log: true
