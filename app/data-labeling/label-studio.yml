@@ -71,6 +71,8 @@ services:
       # 语言和时区配置
       - LANGUAGE_CODE=${LANGUAGE_CODE:-zh-hans}
       - TIME_ZONE=${TIME_ZONE:-Asia/Shanghai}
+      - FAKER_LOCALE=${FAKER_LOCALE:-zh_CN}
+      - DJANGO_LANGUAGE=${DJANGO_LANGUAGE:-zh-hans}
       - USE_I18N=True
       - USE_L10N=True
       - USE_TZ=True
