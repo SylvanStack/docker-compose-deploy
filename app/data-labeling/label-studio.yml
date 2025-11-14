@@ -3,6 +3,20 @@
 version: '3.9'
 
 services:
+  # 初始化容器 - 创建目录并设置权限
+  label-studio-init:
+    image: alpine:latest
+    container_name: label-studio-init
+    volumes:
+      - ${ROOT_PATH}/label-studio/data:/data
+    command: >
+      sh -c "
+        mkdir -p /data/media/upload /data/logs &&
+        chown -R 1001:1001 /data &&
+        chmod -R 755 /data
+      "
+    restart: "no"
+
   # Nginx 代理服务器 - 用于服务静态文件和反向代理
   label-studio-nginx:
     image: heartexlabs/label-studio:latest
@@ -33,6 +47,7 @@ services:
     image: heartexlabs/label-studio:latest
     container_name: label-studio-app
     restart: always
+    user: "root"  # 使用 root 用户运行（解决权限问题）
     expose:
       - "8080"
     environment:
@@ -111,6 +126,8 @@ services:
       # 如使用 GCS，取消下面注释
       # - ./service-account-key.json:/opt/heartex/secrets/key.json:ro
     depends_on:
+      label-studio-init:
+        condition: service_completed_successfully
       label-studio-db:
         condition: service_healthy
     command: label-studio-uwsgi
