@@ -68,6 +68,12 @@ services:
       - USE_NGINX_FOR_EXPORT_DOWNLOADS=${USE_NGINX_FOR_EXPORT_DOWNLOADS:-true}
       # 日志配置
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # 语言和时区配置
+      - LANGUAGE_CODE=${LANGUAGE_CODE:-zh-hans}
+      - TIME_ZONE=${TIME_ZONE:-Asia/Shanghai}
+      - USE_I18N=True
+      - USE_L10N=True
+      - USE_TZ=True
       # MinIO 存储配置
       - MINIO_STORAGE_ENDPOINT=${MINIO_STORAGE_ENDPOINT}
       - MINIO_STORAGE_ACCESS_KEY=${MINIO_STORAGE_ACCESS_KEY}
