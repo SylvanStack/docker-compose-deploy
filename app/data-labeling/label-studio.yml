@@ -13,11 +13,11 @@ services:
       - POSTGRE_PASSWORD=postgres
       - POSTGRE_PORT=5432
       - POSTGRE_HOST=label-studio-db
-      - LABEL_STUDIO_HOST=http://localhost:8080
+      - LABEL_STUDIO_HOST=http://localhost:11000
       - LABEL_STUDIO_BASE_DATA_DIR=/label-studio/data
       - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/data/media
     ports:
-      - "8080:8080"
+      - "11000:8080"
     volumes:
       - ${ROOT_PATH}/label-studio/data:/label-studio/data  # 数据目录
     depends_on:
