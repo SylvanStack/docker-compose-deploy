@@ -31,8 +31,8 @@ services:
       - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
         # JVM 内存配置
       - JVM_XMS=512m
-      - JVM_XMX=1024m
       - JVM_XMN=256m
+      - JVM_XMX=1024m
       # 关闭鉴权（开发环境）
       - NACOS_AUTH_ENABLE=false
     networks:
