@@ -46,7 +46,7 @@ services:
     volumes:
       - ${ROOT_PATH}/nacos/logs:/home/nacos/logs  # 挂载日志目录
       - ${ROOT_PATH}/nacos/data:/home/nacos/data  # 挂载数据目录
-      - ./custom.properties:/home/nacos/init.d/custom.properties  # 挂载自定义配置文件
+      - ./custom.properties:/home/nacos/conf/application.properties  # 挂载配置文件覆盖默认配置
 
 networks:
   my-network:
