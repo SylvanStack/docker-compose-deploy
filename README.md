@@ -34,6 +34,7 @@
 ### 消息队列
 - RocketMQ 4.9.4
 - RabbitMQ 3.9-management (集群支持)
+- Kafka 7.0.0 (支持外网访问)
 
 ### 任务调度
 - XXL-Job 2.3.1 (分布式任务调度)
@@ -84,6 +85,10 @@ cd docker-compose/cluster
 - RabbitMQ Management: http://localhost:15672
   - 用户名：guest
   - 密码：guest
+- Kafka Console UI: http://localhost:7766
+  - 用户名：admin
+  - 密码：admin123
+  - 集群已预配置（local: kafka:29092）
 
 ### 任务调度
 - XXL-Job Admin: http://localhost:9090/xxl-job-admin

@@ -1,47 +1,174 @@
-# 命令执行 docker-compose up -d
+# 命令执行 docker-compose -f label-studio.yml --env-file .env up -d
+# 参考官方文档: https://github.com/HumanSignal/label-studio/tree/develop/deploy
 version: '3.9'
+
 services:
-  label-studio:
-    image: heartexlabs/label-studio:latest
-    container_name: label-studio
-    restart: always
-    user: "root"  # 使用root用户运行容器，解决权限问题
-    environment:
-      - DJANGO_DB=default
-      - POSTGRE_NAME=labelstudio
-      - POSTGRE_USER=postgres
-      - POSTGRE_PASSWORD=postgres
-      - POSTGRE_PORT=5432
-      - POSTGRE_HOST=label-studio-db
-      - LABEL_STUDIO_HOST=http://localhost:8080
-      - LABEL_STUDIO_BASE_DATA_DIR=/label-studio/data
-      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/data/media
-    ports:
-      - "8080:8080"
+  # 初始化容器 - 创建目录并设置权限
+  label-studio-init:
+    image: alpine:latest
+    container_name: label-studio-init
     volumes:
-      - ${ROOT_PATH}/label-studio/data:/label-studio/data  # 数据目录
+      - ${ROOT_PATH}/label-studio/data:/data
+    command: >
+      sh -c "
+        mkdir -p /data/media/upload /data/logs &&
+        chown -R 1001:1001 /data &&
+        chmod -R 755 /data
+      "
+    restart: "no"
+
+  # Nginx 代理服务器 - 用于服务静态文件和反向代理
+  label-studio-nginx:
+    image: heartexlabs/label-studio:latest
+    container_name: label-studio-nginx
+    restart: always
+    ports:
+      - "${HTTP_PORT:-11000}:8085"
+      # - "${HTTPS_PORT:-11443}:8086"  # HTTPS 端口（如需要启用 SSL）
+    environment:
+      - LABEL_STUDIO_HOST=${LABEL_STUDIO_HOST}
+      - APP_HOST=${APP_HOST}
+      - NGINX_ERROR_LOG_LEVEL=${NGINX_ERROR_LOG_LEVEL:-warn}
+      # 如需启用 SSL，取消下面注释并在 .env 中配置
+      # - NGINX_SSL_CERT=${NGINX_SSL_CERT}
+      # - NGINX_SSL_CERT_KEY=${NGINX_SSL_CERT_KEY}
+    volumes:
+      - ${ROOT_PATH}/label-studio/data:/label-studio/data:ro
+      # 如启用 SSL，取消下面注释
+      # - ./certs:/certs:ro
+    command: nginx
     depends_on:
-      label-studio-db:
-        condition: service_healthy  # 确保数据库完全启动后再启动label-studio
+      - label-studio-app
     networks:
       - my-network
 
+  # Label Studio 主应用
+  label-studio-app:
+    image: heartexlabs/label-studio:latest
+    container_name: label-studio-app
+    restart: always
+    user: "root"  # 使用 root 用户运行（解决权限问题）
+    expose:
+      - "8080"
+    environment:
+      # 数据库配置
+      - DJANGO_DB=${DJANGO_DB:-default}
+      - POSTGRE_NAME=${POSTGRES_DB}
+      - POSTGRE_USER=${POSTGRES_USER}
+      - POSTGRE_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRE_PORT=${POSTGRES_PORT}
+      - POSTGRE_HOST=${POSTGRES_HOST}
+      # 主机配置
+      - LABEL_STUDIO_HOST=${LABEL_STUDIO_HOST}
+      # 数据目录配置
+      - LABEL_STUDIO_BASE_DATA_DIR=${LABEL_STUDIO_BASE_DATA_DIR}
+      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=${LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT}
+      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=${LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED:-true}
+      # 静态文件和媒体文件URL配置（解决 undefined$ 问题）
+      - STATIC_URL=${STATIC_URL:-/static/}
+      - MEDIA_URL=${MEDIA_URL:-/data/}
+      # Nginx 配置
+      - USE_NGINX_FOR_UPLOADS=${USE_NGINX_FOR_UPLOADS:-true}
+      - USE_NGINX_FOR_EXPORT_DOWNLOADS=${USE_NGINX_FOR_EXPORT_DOWNLOADS:-true}
+      # 日志配置
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # 语言和时区配置
+      - LANGUAGE_CODE=${LANGUAGE_CODE:-zh-hans}
+      - TIME_ZONE=${TIME_ZONE:-Asia/Shanghai}
+      - FAKER_LOCALE=${FAKER_LOCALE:-zh_CN}
+      - DJANGO_LANGUAGE=${DJANGO_LANGUAGE:-zh-hans}
+      - USE_I18N=True
+      - USE_L10N=True
+      - USE_TZ=True
+      # MinIO 存储配置
+      - MINIO_STORAGE_ENDPOINT=${MINIO_STORAGE_ENDPOINT}
+      - MINIO_STORAGE_ACCESS_KEY=${MINIO_STORAGE_ACCESS_KEY}
+      - MINIO_STORAGE_SECRET_KEY=${MINIO_STORAGE_SECRET_KEY}
+      - MINIO_STORAGE_BUCKET_NAME=${MINIO_STORAGE_BUCKET_NAME}
+      - MINIO_STORAGE_ENDPOINT_URL=${MINIO_STORAGE_ENDPOINT_URL}
+      # 以下为可选配置，需要时在 .env 文件中取消注释
+      # PostgreSQL SSL
+      # - POSTGRE_SSL_MODE=${POSTGRE_SSL_MODE}
+      # - POSTGRE_SSLROOTCERT=${POSTGRE_SSLROOTCERT}
+      # 用户认证
+      # - DISABLE_SIGNUP_WITHOUT_LINK=${DISABLE_SIGNUP_WITHOUT_LINK}
+      # LDAP
+      # - LDAP_ENABLED=${LDAP_ENABLED}
+      # - LDAP_SERVER_URI=${LDAP_SERVER_URI}
+      # - LDAP_BIND_DN=${LDAP_BIND_DN}
+      # - LDAP_BIND_PASSWORD=${LDAP_BIND_PASSWORD}
+      # - LDAP_USER_SEARCH_BASE=${LDAP_USER_SEARCH_BASE}
+      # 会话和安全
+      - SESSION_COOKIE_AGE=${SESSION_COOKIE_AGE:-86400}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      # CORS 配置
+      - CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS:-true}
+      - CORS_ALLOW_METHODS=${CORS_ALLOW_METHODS:-GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      - CORS_ALLOW_HEADERS=${CORS_ALLOW_HEADERS:-*}
+      - CORS_ALLOW_CREDENTIALS=${CORS_ALLOW_CREDENTIALS:-true}
+      # AWS S3
+      # - USE_DEFAULT_S3=${USE_DEFAULT_S3}
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
+      # - AWS_S3_REGION_NAME=${AWS_S3_REGION_NAME}
+      # - AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL}
+      # Google Cloud Storage
+      # - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+      # - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      # Redis
+      # - REDIS_LOCATION=${REDIS_LOCATION}
+      # - REDIS_PASSWORD=${REDIS_PASSWORD}
+      # 邮件
+      # - EMAIL_BACKEND=${EMAIL_BACKEND}
+      # - EMAIL_HOST=${EMAIL_HOST}
+      # - EMAIL_PORT=${EMAIL_PORT}
+      # - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      # - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      # - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      # - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      # 性能
+      # - MAX_UPLOAD_SIZE=${MAX_UPLOAD_SIZE}
+      # - DB_CONN_MAX_AGE=${DB_CONN_MAX_AGE}
+      # - UWSGI_PROCESSES=${UWSGI_PROCESSES}
+      # - UWSGI_THREADS=${UWSGI_THREADS}
+      # 功能开关
+      # - ML_BACKEND_ENABLED=${ML_BACKEND_ENABLED}
+      # - WEBHOOK_ENABLED=${WEBHOOK_ENABLED}
+      # - ENABLE_IMPORT=${ENABLE_IMPORT}
+      # 调试
+      # - DEBUG=${DEBUG}
+    volumes:
+      - ${ROOT_PATH}/label-studio/data:/label-studio/data
+      # 如使用 GCS，取消下面注释
+      # - ./service-account-key.json:/opt/heartex/secrets/key.json:ro
+    depends_on:
+      label-studio-init:
+        condition: service_completed_successfully
+      label-studio-db:
+        condition: service_healthy
+    command: label-studio-uwsgi
+    networks:
+      - my-network
+
+  # PostgreSQL 数据库
   label-studio-db:
     image: postgres:13
     container_name: label-studio-db
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=labelstudio
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ${ROOT_PATH}/label-studio/postgres-data:/var/lib/postgresql/data
     ports:
-      - "15432:5432"
+      - "${POSTGRES_EXTERNAL_PORT:-15432}:5432"
     networks:
       - my-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5

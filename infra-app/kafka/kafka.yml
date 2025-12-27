@@ -1,7 +1,7 @@
 # Kafka集群部署配置
 # 包含Zookeeper和Kafka服务
 # 使用Confluent平台镜像，提供完整的Kafka生态系统
-# 参考RocketMQ配置结构设计
+# 支持外网访问和权限验证
 
 version: '3.9'
 
@@ -13,39 +13,45 @@ services:
     container_name: kafka-zookeeper
     hostname: zookeeper
     ports:
-      - "2181:2181"
+      - "${ZOOKEEPER_PORT:-2181}:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       TZ: "Asia/Shanghai"
     volumes:
-      - zookeeper_data:/var/lib/zookeeper/data
-      - zookeeper_logs:/var/lib/zookeeper/log
+      - ${ROOT_PATH}/kafka/zookeeper/data:/var/lib/zookeeper/data
+      - ${ROOT_PATH}/kafka/zookeeper/logs:/var/lib/zookeeper/log
     networks:
       - my-network
 
   # Kafka Broker服务
   # 使用与 kafka-clients:3.0.2 兼容的版本
+  # 配置支持外网访问
   kafka:
     image: confluentinc/cp-kafka:7.0.0
     container_name: kafka-broker
     hostname: kafka
     depends_on:
       - zookeeper
+    privileged: true
+    user: root
     ports:
-      - "9092:9092"
-      - "9093:9093"
-      - "9997:9997"
+      - "${KAFKA_INTERNAL_PORT:-9092}:9092"  # 内部访问端口
+      - "${KAFKA_EXTERNAL_PORT:-9093}:9093"  # 外部访问端口
+      - "${KAFKA_JMX_PORT:-9997}:9997"  # JMX端口
     environment:
       # Kafka基础配置
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       
       # 监听器配置 - 支持内外网访问
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # INTERNAL: 容器内部通信
+      # EXTERNAL: 外部客户端访问
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9093
+      # 通过环境变量配置外部访问地址，部署时修改.env文件中的KAFKA_EXTERNAL_HOST
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://${KAFKA_EXTERNAL_HOST:-localhost}:${KAFKA_EXTERNAL_PORT:-9093}
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       
       # 性能和存储配置
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -60,6 +66,14 @@ services:
       KAFKA_LOG_SEGMENT_BYTES: 1073741824
       KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
       
+      # Topic管理配置
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      
+      # 日志清理配置
+      KAFKA_LOG_CLEANER_ENABLE: 'true'
+      KAFKA_LOG_CLEANUP_POLICY: delete
+      
       # JMX监控配置
       KAFKA_JMX_PORT: 9997
       KAFKA_JMX_HOSTNAME: localhost
@@ -67,61 +81,110 @@ services:
       # 时区配置
       TZ: "Asia/Shanghai"
     volumes:
-      - kafka_data:/var/lib/kafka/data
-      - kafka_logs:/var/log/kafka
+      - ${ROOT_PATH}/kafka/data:/var/lib/kafka/data
+      - ${ROOT_PATH}/kafka/logs:/var/log/kafka
     networks:
       - my-network
 
-  # Kafka UI管理界面
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
+  # Kafka Console UI管理界面
+  kafka-console-ui:
+    image: wdkang/kafka-console-ui:latest
+    container_name: kafka-console-ui
     depends_on:
       - kafka
+      - zookeeper
+    privileged: true
+    volumes:
+      - ${ROOT_PATH}/kafka-console-ui/data:/app/data
+      - ${ROOT_PATH}/kafka-console-ui/logs:/app/log
+      - ./kafka-console-ui/config/application.yml:/app/config/application.yml
+    user: root
     ports:
-      - "18080:8080"
+      - "${KAFKA_UI_PORT:-7766}:7766"
     environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      # 时区配置
       TZ: "Asia/Shanghai"
     networks:
       - my-network
-
-  # # Kafka Manager (CMAK) - 可选的集群管理工具
-  # kafka-manager:
-  #   image: hlebalbau/kafka-manager:stable
-  #   container_name: kafka-manager
-  #   depends_on:
-  #     - zookeeper
-  #   ports:
-  #     - "9000:9000"
-  #   environment:
-  #     ZK_HOSTS: zookeeper:2181
-  #     APPLICATION_SECRET: letmein
-  #     TZ: "Asia/Shanghai"
-  #   networks:
-  #     - my-network
 
 networks:
   my-network:
     driver: bridge
 
-volumes:
-  zookeeper_data:
-  zookeeper_logs:
-  kafka_data:
-  kafka_logs:
+volumes: { }
 
-# 使用说明：
-# 1. 直接使用命名卷存储数据，无需设置环境变量和手动创建目录
-# 2. 容器内权限问题已通过命名卷自动处理
-# 3. 执行命令：docker-compose -f kafka.yml up -d
-# 3. 访问 Kafka UI：http://localhost:8080
-# 4. 访问 Kafka Manager：http://localhost:9000
-# 5. Kafka连接地址：localhost:9092
+# ============================================
+# 使用说明
+# ============================================
 #
-# 版本兼容性说明：
+# 1. 配置环境变量
+#    方式一: 复制配置文件模板
+#      cp kafka-env.conf .env
+#      # 编辑.env文件，修改KAFKA_EXTERNAL_HOST为服务器IP
+#    
+#    方式二: 直接设置环境变量
+#      export ROOT_PATH=/data
+#      export KAFKA_EXTERNAL_HOST=your-server-ip
+#
+# 2. 启动服务
+#    docker-compose -f kafka.yml up -d
+#
+# 3. 访问地址
+#    - Kafka Console UI: http://localhost:7766 (或 http://服务器IP:7766)
+#    - Kafka内部连接: kafka:29092
+#    - Kafka外部连接: localhost:9093 (或 服务器IP:9093)
+#
+# ============================================
+# Kafka Console UI使用说明
+# ============================================
+# - 使用最新版本(latest)镜像
+# - 通过application.yml配置文件启用登录验证
+# - 登录账号：
+#   用户名：admin
+#   密码：admin123
+# - 集群信息已预配置（local: kafka:29092）
+# - 数据持久化到${ROOT_PATH}/kafka-console-ui/data
+# - 日志输出到${ROOT_PATH}/kafka-console-ui/logs
+#
+# ============================================
+# 服务器部署配置说明
+# ============================================
+# 1. 修改.env文件中的KAFKA_EXTERNAL_HOST为服务器公网IP或域名
+#    例如: KAFKA_EXTERNAL_HOST=123.456.789.0
+#
+# 2. 修改.env文件中的ROOT_PATH为服务器数据存储路径
+#    例如: ROOT_PATH=/data
+#
+# 3. 开放防火墙端口
+#    - 9093 (Kafka外部访问，必须)
+#    - 7766 (Kafka Console UI，必须)
+#    - 2181 (Zookeeper，可选)
+#    - 9997 (JMX监控，可选)
+#
+# 4. 防火墙配置命令示例
+#    CentOS/RHEL:
+#      firewall-cmd --permanent --add-port=9093/tcp
+#      firewall-cmd --permanent --add-port=7766/tcp
+#      firewall-cmd --reload
+#    Ubuntu/Debian:
+#      ufw allow 9093/tcp
+#      ufw allow 7766/tcp
+#    云服务器: 在安全组中开放相应端口
+#
+# ============================================
+# 客户端连接配置
+# ============================================
+# Java客户端配置示例:
+#   bootstrap.servers=服务器IP:9093
+#
+# Spring Boot配置示例:
+#   spring:
+#     kafka:
+#       bootstrap-servers: 服务器IP:9093
+#
+# ============================================
+# 版本兼容性说明
+# ============================================
 # - Kafka服务端版本：3.0.x (cp-kafka:7.0.0)
 # - 兼容 kafka-clients:3.0.2
 # - 保留 Zookeeper 以确保与该版本 Java 客户端的最佳兼容性
