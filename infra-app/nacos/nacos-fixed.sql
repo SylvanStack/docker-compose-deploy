@@ -15,7 +15,7 @@ SET NAMES utf8mb4;
 /*!40101 SET @OLD_SQL_MODE='NO_AUTO_VALUE_ON_ZERO', SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-CREATE database if NOT EXISTS `nacos_config` default character set utf8mb4 collate utf8mb4_0900_ai_ci;
+CREATE database if NOT EXISTS `nacos_config` default character set utf8mb4 collate utf8mb4_unicode_ci;
 
 use `nacos_config`;
 
@@ -41,7 +41,7 @@ CREATE TABLE `config_info` (
   `effect` varchar(64) DEFAULT NULL,
   `type` varchar(64) DEFAULT NULL,
   `c_schema` text,
-  `encrypted_data_key` text NOT NULL COMMENT '秘钥',
+  `encrypted_data_key` text COMMENT '秘钥',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_configinfo_datagrouptenant` (`data_id`,`group_id`,`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='config_info';
@@ -86,7 +86,7 @@ CREATE TABLE `config_info_beta` (
   `src_user` text COMMENT 'source user',
   `src_ip` varchar(20) DEFAULT NULL COMMENT 'source ip',
   `tenant_id` varchar(128) DEFAULT '' COMMENT '租户字段',
-  `encrypted_data_key` text NOT NULL COMMENT '秘钥',
+  `encrypted_data_key` text COMMENT '秘钥',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_configinfobeta_datagrouptenant` (`data_id`,`group_id`,`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='config_info_beta';
@@ -178,7 +178,7 @@ CREATE TABLE `his_config_info` (
   `src_ip` varchar(20) DEFAULT NULL,
   `op_type` char(10) DEFAULT NULL,
   `tenant_id` varchar(128) DEFAULT '' COMMENT '租户字段',
-  `encrypted_data_key` text NOT NULL COMMENT '秘钥',
+  `encrypted_data_key` text COMMENT '秘钥',
   PRIMARY KEY (`nid`),
   KEY `idx_gmt_create` (`gmt_create`),
   KEY `idx_gmt_modified` (`gmt_modified`),
