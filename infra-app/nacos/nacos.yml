@@ -29,8 +29,8 @@ services:
       - MYSQL_SERVICE_USER=root
       # MySQL 密码
       - MYSQL_SERVICE_PASSWORD=123456
-      # MySQL 连接参数
-      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      # MySQL 连接参数 (修复字符集为 utf8mb4)
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8mb4&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
         # JVM 内存配置
       - JVM_XMS=512m
       - JVM_XMN=256m
