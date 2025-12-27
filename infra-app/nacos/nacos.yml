@@ -19,6 +19,8 @@ services:
       - PREFER_HOST_MODE=hostname
       # 使用 MySQL 作为数据源
       - SPRING_DATASOURCE_PLATFORM=mysql
+      # MySQL 数据库数量（单数据源配置为1）
+      - MYSQL_DATABASE_NUM=1
       # MySQL 主机地址
       - MYSQL_SERVICE_HOST=mysql
       # 数据库名称
@@ -31,6 +33,8 @@ services:
       - MYSQL_SERVICE_PASSWORD=123456
       # MySQL 连接参数 (修复字符集为 utf8mb4)
       - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8mb4&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      # 显式设置 JDBC URL (Nacos 2.x 可能需要)
+      - MYSQL_SERVICE_URL=jdbc:mysql://mysql:3306/nacos_config?characterEncoding=utf8mb4&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
         # JVM 内存配置
       - JVM_XMS=512m
       - JVM_XMN=256m
