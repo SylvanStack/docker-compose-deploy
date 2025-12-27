@@ -18,7 +18,7 @@ services:
       # 使用 MySQL 作为数据源
       - SPRING_DATASOURCE_PLATFORM=mysql
       # MySQL 主机地址
-      - MYSQL_SERVICE_HOST=117.72.10.109
+      - MYSQL_SERVICE_HOST=mysql
       # 数据库名称
       - MYSQL_SERVICE_DB_NAME=nacos_config
       # MySQL 端口
