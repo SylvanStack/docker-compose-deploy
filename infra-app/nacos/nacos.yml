@@ -2,7 +2,7 @@
 version: '3.9'
 services:
   nacos:
-    image: nacos/nacos-server:v2.3.0
+    image: nacos/nacos-server:v2.0.3
     # 强制使用 amd64 架构
     platform: linux/amd64  
     container_name: nacos
@@ -15,12 +15,10 @@ services:
     environment:
       # 基础配置
       - PREFER_HOST_MODE=hostname
-      # 单机模式
-      - MODE=standalone
       # 使用 MySQL 作为数据源
       - SPRING_DATASOURCE_PLATFORM=mysql
       # MySQL 主机地址
-      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_HOST=117.72.10.109
       # 数据库名称
       - MYSQL_SERVICE_DB_NAME=nacos_config
       # MySQL 端口
@@ -31,17 +29,12 @@ services:
       - MYSQL_SERVICE_PASSWORD=123456
       # MySQL 连接参数
       - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
-
-      # 认证与安全配置
-      # 启用认证
-      - NACOS_AUTH_ENABLE=true
-      # 管理员账号
-      - NACOS_AUTH_USERNAME=nacos
-      # 管理员密码
-      - NACOS_AUTH_PASSWORD=nacos
-      - NACOS_AUTH_IDENTITY_KEY=2222
-      - NACOS_AUTH_IDENTITY_VALUE=2xxx
-      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+        # JVM 内存配置
+      - JVM_XMS=512m
+      - JVM_XMX=256m
+      - JVM_XMN=256m
+      # 关闭鉴权（开发环境）
+      - NACOS_AUTH_ENABLE=false
     networks:
       - my-network
     volumes:
