@@ -13,6 +13,8 @@ services:
       # gRPC 端口
       - "19848:9848"
     environment:
+      # 运行模式：standalone 单机模式
+      - MODE=standalone
       # 基础配置
       - PREFER_HOST_MODE=hostname
       # 使用 MySQL 作为数据源
@@ -46,4 +48,5 @@ services:
 
 networks:
   my-network:
+    name: my-network
     driver: bridge

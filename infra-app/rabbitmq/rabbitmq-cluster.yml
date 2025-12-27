@@ -51,4 +51,5 @@ services:
 
 networks:
   my-network:
+    name: my-network
     driver: bridge
