@@ -1,23 +1,23 @@
 # 命令执行 docker-compose up -d
 version: '3.9'
 services:
-  # RedisAdmin https://github.com/joeferner/redis-commander
-  redis-admin:
-    image: spryker/redis-commander:0.8.0
-    container_name: redis-admin
-    hostname: redis-commander
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-      - HTTP_USER=admin
-      - HTTP_PASSWORD=admin
-    networks:
-      - my-network
-    depends_on:
-      redis:
-        condition: service_healthy
+#  # RedisAdmin https://github.com/joeferner/redis-commander
+#  redis-admin:
+#    image: spryker/redis-commander:0.8.0
+#    container_name: redis-admin
+#    hostname: redis-commander
+#    restart: always
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - REDIS_HOSTS=local:redis:6379
+#      - HTTP_USER=admin
+#      - HTTP_PASSWORD=admin
+#    networks:
+#      - my-network
+#    depends_on:
+#      redis:
+#        condition: service_healthy
 
   # Redis
   redis:
@@ -26,7 +26,7 @@ services:
     restart: always
     hostname: redis
     ports:
-      - "6379:6379"
+      - "16379:6379"
     volumes:
       - ${ROOT_PATH}/redis/redis.conf:/usr/local/etc/redis/redis.conf
       - ${ROOT_PATH}/redis/data:/data
