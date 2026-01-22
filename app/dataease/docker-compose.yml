@@ -1,0 +1,63 @@
+version: '3'
+services:
+
+  dataease:
+    image: registry.cn-qingdao.aliyuncs.com/dataease/dataease:v2.10.19
+    stop_signal: SIGTERM
+    stop_grace_period: 15s
+    container_name: dataease
+    restart: unless-stopped
+    ports:
+      - ${DE_PORT}:8100
+    environment:
+      - DE_MYSQL_HOST=${DE_MYSQL_HOST}
+      - DE_MYSQL_PORT=${DE_MYSQL_PORT}
+      - DE_MYSQL_DB=${DE_MYSQL_DB}
+      - DE_MYSQL_USER=${DE_MYSQL_USER}
+      - DE_MYSQL_PASSWORD=${DE_MYSQL_PASSWORD}
+      - DE_MYSQL_PARAMS=${DE_MYSQL_PARAMS}
+      - DE_LOGIN_TIMEOUT=${DE_LOGIN_TIMEOUT}
+      - DE_EXPORT_VIEWS_LIMIT=${DE_EXPORT_VIEWS_LIMIT}
+      - DE_EXPORT_DATASET_LIMIT=${DE_EXPORT_DATASET_LIMIT}
+      - DE_ORIGIN_LIST=${DE_ORIGIN_LIST}
+      - DE_SELENIUM_SERVER=${DE_SELENIUM_SERVER}
+      - DE_SERVERS=${DE_SERVERS}
+      - DE_CONTEXT_PATH=${DE_CONTEXT_PATH}
+    volumes:
+      - ${DE_BASE}/dataease2.0/conf:/opt/apps/config
+      - ${DE_BASE}/dataease2.0/logs:/opt/dataease2.0/logs
+      - ${DE_BASE}/dataease2.0/data/static-resource:/opt/dataease2.0/data/static-resource
+      - ${DE_BASE}/dataease2.0/cache:/opt/dataease2.0/cache
+      - ${DE_BASE}/dataease2.0/data/geo:/opt/dataease2.0/data/geo
+      - ${DE_BASE}/dataease2.0/data/appearance:/opt/dataease2.0/data/appearance
+      - ${DE_BASE}/dataease2.0/data/exportData:/opt/dataease2.0/data/exportData
+      - ${DE_BASE}/dataease2.0/data/plugin:/opt/dataease2.0/data/plugin
+      - ${DE_BASE}/dataease2.0/data/font:/opt/dataease2.0/data/font
+      - ${DE_BASE}/dataease2.0/data/i18n:/opt/dataease2.0/data/i18n
+    networks:
+      - my-network
+    # 使用外部 MySQL，移除 depends_on 配置
+
+  de-selenium:
+    image: registry.cn-qingdao.aliyuncs.com/dataease/standalone-chromium:123.0
+    container_name: de-selenium
+    restart: unless-stopped
+    shm_size: 2gb
+    privileged: true
+    deploy:
+      resources:
+        limits:
+          cpus: '${DE_SELENIUM_CPU_LIMIT}'
+          memory: ${DE_SELENIUM_MEM_LIMIT}
+    environment:
+      - SE_ENABLE_BROWSER_LEFTOVERS_CLEANUP=true
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_MAX_SESSIONS=5
+      - TZ=Asia/Shanghai
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    name: my-network
+    driver: bridge
